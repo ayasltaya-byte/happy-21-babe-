@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday Tasnim ! 🎂✨</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: radial-gradient(circle, #ffe4e8 0%, #ffccd5 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      padding: 15px;
+      perspective: 1200px;
+    }
+
+    /* Conteneur au départ : taille d'une seule page (la couverture) */
+    .card-wrapper {
+      position: relative;
+      width: 85vw;
+      max-width: 400px;
+      aspect-ratio: 1050 / 1485;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.6s ease;
+    }
+
+    /* Quand la carte s'ouvre : agrandissement au format livre double page */
+    .card-wrapper.opened {
+      width: 95vw;
+      max-width: 800px;
+      aspect-ratio: 2100 / 1485;
+    }
+
+    /* 1. La couverture fermée au départ */
+    .single-cover {
+      width: 100%;
+      height: 100%;
+      background-image: url('cover.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      cursor: pointer;
+      filter: drop-shadow(0 10px 20px rgba(214, 90, 138, 0.3));
+      border-radius: 12px;
+      z-index: 10;
+    }
+
+    /* 2. Le livre intérieur (masqué au début) */
+    .book-spread {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+      overflow: visible;
+      background-color: #dfcdb5;
+    }
+
+    .page-left, .page-right {
+      width: 50%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Page droite : Gâteau */
+    .page-right {
+      background-image: url('cake.png');
+      background-size: cover;
+      background-position: center;
+      border-radius: 0 12px 12px 0;
+    }
+
+    /* Page gauche : Enveloppe + Lettre */
+    .page-left {
+      cursor: pointer;
+      position: relative;
+      border-radius: 12px 0 0 12px;
+      overflow: visible;
+    }
+
+    /* Image de la lettre : Glissement vers le CÔTÉ */
+    .letter-img {
+      position: absolute;
+      width: 85%;
+      height: 85%;
+      top: 7.5%;
+      left: 7.5%;
+      background-image: url('letter.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+      transform: translateX(0);
+      z-index: 1;
+    }
+
+    /* Action du clic : la lettre sort sur le CÔTÉ GAUCHE */
+    .page-left.extracted .letter-img {
+      transform: translateX(-65%);
+      z-index: 3;
+    }
+
+    /* Image de l'enveloppe */
+    .envelope-img {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-image: url('envelope.png');
+      background-size: cover;
+      background-position: center;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Bouton pour refermer */
+    .close-btn {
+      display: none;
+      margin-top: 15px;
+      background: #ffffff;
+      color: #d65a8a;
+      border: 2px solid #ffccd5;
+      padding: 6px 18px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      background: #ffe4e8;
+    }
+
+    /* Bannière d'instructions */
+    .hint-banner {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #d65a8a;
+      padding: 8px 22px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(255, 182, 193, 0.5);
+      animation: bounce 1.8s infinite;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card-wrapper" id="wrapper">
+    <!-- 1. Couverture FERMÉE au départ -->
+    <div class="single-cover" id="cover" onclick="openBook()"></div>
+
+    <!-- 2. Livre intérieur (s'affiche uniquement après le clic) -->
+    <div class="book-spread" id="book">
+      <!-- Gauche : Enveloppe & Lettre -->
+      <div class="page-left" id="leftPage" onclick="toggleLetter()">
+        <div class="letter-img"></div>
+        <div class="envelope-img"></div>
+      </div>
+      <!-- Droite : Gâteau -->
+      <div class="page-right"></div>
+    </div>
+  </div>
+
+  <div class="hint-banner" id="hint">Happy Birthday Tasnim 🎁 (Clique pour ouvrir)</div>
+  <button class="close-btn" id="closeBtn" onclick="closeBook()">↺ Refermer la carte</button>
+
+  <script>
+    let isOpen = false;
+    let isExtracted = false;
+
+    function openBook() {
+      // Masquer la couverture et afficher le livre ouvert
+      document.getElementById('cover').style.display = 'none';
+      document.getElementById('book').style.display = 'flex';
+      document.getElementById('wrapper').classList.add('opened');
+      document.getElementById('closeBtn').style.display = 'inline-block';
+      document.getElementById('hint').innerText = "Clique sur l'enveloppe pour faire sortir la lettre ✉️";
+      isOpen = true;
+    }
+
+    function closeBook() {
+      if (isExtracted) {
+        toggleLetter(); // Ranger la lettre d'abord
+      }
+      // Revenir à la couverture fermée
+      document.getElementById('book').style.display = 'none';
+      document.getElementById('cover').style.display = 'block';
+      document.getElementById('wrapper').classList.remove('opened');
+      document.getElementById('closeBtn').style.display = 'none';
+      document.getElementById('hint').innerText = "Happy Birthday Tasnim 🎁 (Clique pour ouvrir)";
+      isOpen = false;
+    }
+
+    function toggleLetter() {
+      if (!isOpen) return;
+      
+      const leftPage = document.getElementById('leftPage');
+      const hint = document.getElementById('hint');
+
+      isExtracted = !isExtracted;
+      if (isExtracted) {
+        leftPage.classList.add('extracted');
+        hint.innerText = "Clique sur la lettre pour la ranger 📥";
+      } else {
+        leftPage.classList.remove('extracted');
+        hint.innerText = "Clique sur l'enveloppe pour faire sortir la lettre ✉️";
+      }
+    }
+  </script>
+</body>
+</html>
